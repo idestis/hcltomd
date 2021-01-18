@@ -11,5 +11,5 @@ builds:
 
 archives:
   - id: hcltomd
-    builds: [vaultmv]
+    builds: [hcltomd]
     format: binary
