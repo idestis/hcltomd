@@ -83,7 +83,7 @@ func runFuncOrVersion(cmd *cobra.Command, args []string) {
 		}
 		data, err := ioutil.ReadFile(File)
 		if err != nil {
-			logrus.Errorf("File reading error", err)
+			logrus.Errorf("File reading error %v", err)
 			return
 		}
 		jsonData, err := hclToJSON(data)

@@ -1,15 +1,17 @@
 # HCL to Markdown
 [![Build Status](https://cloud.drone.io/api/badges/idestis/hcltomd/status.svg)](https://cloud.drone.io/idestis/hcltomd)
 
-**Warning:** We struggle to support `type = string` without quotes.
+**Note:** In progress to add an abillity to parse unquoted type.
+
+## About
 
 To write good documentation for your terraform module, quite often we need to print all our variables with all descriptions.
 
 We offer you to avoid long bash scripts and update your README.md as quick as it was released.
 
-## How to use
+## How to Use
 
-Download the latest binary for your OS from Releases Page and run it over required file
+Download the latest binary for your OS from [Releases Page](https://github.com/idestis/hcltomd/releases) and run it over required file
 
 ```shell
 $ ./hcltomd --file ./testdata/inputs.tf
