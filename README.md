@@ -24,3 +24,7 @@ $ ./hcltomd --file ./testdata/inputs.tf
 ```
 
 That's it, you can copy it into your Markdown documentation
+
+## Contribute
+
+I will be happy to welcome new contributers for this repo, feel free to read CONTRIBUTE.md
