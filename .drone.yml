@@ -16,7 +16,7 @@ steps:
     environment:
       GO111MODULE: on
     commands:
-      - go test ./src/
+      - go test ./cmd/
   
   - name: release binaries
     image: goreleaser/goreleaser:v0.108.0
