@@ -1,4 +1,5 @@
 # HCL to Markdown
+[![Build Status](https://cloud.drone.io/api/badges/idestis/hcltomd/status.svg)](https://cloud.drone.io/idestis/hcltomd)
 
 **Warning:** We struggle to support `type = string` without quotes.
 
