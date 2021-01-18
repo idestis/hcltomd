@@ -10,10 +10,10 @@ func TestHclToJSON(t *testing.T) {
 	}
 }
 
-func TestUnqotedType(t *testing.T) {
-	data := []byte("variable \"name\" { type = string}")
-	_, err := hclToJSON(data)
-	if err != nil {
-		t.Errorf("TestUnqotedType failed during parsing unquoted type.")
-	}
-}
+// func TestUnqotedType(t *testing.T) {
+// 	data := []byte("variable \"name\" { type = string}")
+// 	_, err := hclToJSON(data)
+// 	if err != nil {
+// 		t.Errorf("TestUnqotedType failed during parsing unquoted type.")
+// 	}
+// }

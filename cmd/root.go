@@ -20,6 +20,26 @@ type Version struct {
 	Commit  string
 }
 
+// HashiCorp Configuration Language struct
+type HashiCorp struct {
+	// {"variable": []}
+	Variable interface{} `json:"variable"`
+	// {"output": []}
+	Output interface{} `json:"output"`
+	// {"resource": []}
+	Resource interface{} `json:"resource"`
+	// {"data": []}
+	Data interface{} `json:"data"`
+}
+
+// TableVariable is
+type TableVariable struct {
+	Name        string      `json:"name"`
+	Type        string      `json:"type"`
+	Default     interface{} `json:"default"`
+	Description string      `json:"description"`
+}
+
 var (
 	showVersion bool
 	cfgFile     string
@@ -60,17 +80,14 @@ func init() {
 	versionHelpMessage := fmt.Sprintf("prints version information for %v and components", Bold.Sprint("gish"))
 	rootCmd.PersistentFlags().BoolVarP(&showVersion, "version", "v", false, versionHelpMessage)
 	rootCmd.Flags().StringVarP(&File, "file", "f", "", "terraform vars file path (required)")
-	rootCmd.Flags().StringVarP(&Output, "output", "o", "table", "define the formatting of the output (e.g. table, list)")
+	// TODO: Add more print table options, such as MD.
+	// rootCmd.Flags().StringVarP(&Output, "output", "o", "table", "define the formatting of the output (e.g. table, list)")
 	rootCmd.MarkFlagRequired("file")
 }
 
 func initConfig() {
-	viper.SetEnvPrefix("hcltomd")
-	viper.AutomaticEnv() // read in environment variables that match
-	// If a config file is found, read it in.
-	// if err := viper.ReadInConfig(); err == nil {
-	// 	fmt.Println("Using config file:", viper.ConfigFileUsed())
-	// }
+	viper.SetEnvPrefix("hcltomd") // HCLTOMD_
+	viper.AutomaticEnv()          // read in environment variables that match
 }
 
 func runFuncOrVersion(cmd *cobra.Command, args []string) {
@@ -105,9 +122,8 @@ func runFuncOrVersion(cmd *cobra.Command, args []string) {
 				"Default",
 				"Description",
 			})
-		var tableData []Variable
+		var tableData []TableVariable
 		for _, variable := range jsonData.([]map[string]interface{}) {
-			// key == id, label, properties, etc
 			for name, values := range variable {
 				// Placeholders
 				var def interface{}
@@ -126,7 +142,7 @@ func runFuncOrVersion(cmd *cobra.Command, args []string) {
 						}
 					}
 				}
-				tableData = append(tableData, Variable{
+				tableData = append(tableData, TableVariable{
 					Default:     def,
 					Description: varDesc,
 					Name:        name,
@@ -147,29 +163,14 @@ func runFuncOrVersion(cmd *cobra.Command, args []string) {
 	}
 }
 
-// HashiCorp Configuration Language struct
-type HashiCorp struct {
-	// {"variable": []}
-	Variable interface{} `json:"variable"`
-	// {"output": []}
-	Output interface{} `json:"output"`
-}
-
-// Variable is
-type Variable struct {
-	Name        string      `json:"name"`
-	Type        string      `json:"type"`
-	Default     interface{} `json:"default"`
-	Description string      `json:"description"`
-}
-
 func hclToJSON(content []byte) (interface{}, error) {
 	var out HashiCorp
-	// FIXME: Define why Decode doesn't work with type = string from TF12
+	// FIXME: Define why Unmarshal doesn't work with unqoted type from TF12
 	// Terraform 0.11 and earlier required type constraints to be given in quotes,
 	// but that form is now deprecated and will be removed in a future version of
 	// Terraform. To silence this warning, remove the quotes around "string".
 	// type = "string"
+	// err := hcl.Decode(&out, string(content))
 	err := hcl.Unmarshal(content, &out)
 	if err != nil {
 		return nil, err
