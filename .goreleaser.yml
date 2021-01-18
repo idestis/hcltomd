@@ -1,7 +1,7 @@
 builds:
   - id: hcltomd
     binary: hcltomd
-    main: ./src/main.go
+    main: ./main.go
     goos: [freebsd, windows, linux, darwin]
     goarch: [amd64, arm, arm64]
     goarm: [6, 7]
