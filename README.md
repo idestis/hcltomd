@@ -1,14 +1,11 @@
 # HCL to Markdown
 
 [![Build Status](https://cloud.drone.io/api/badges/idestis/hcltomd/status.svg)](https://cloud.drone.io/idestis/hcltomd)
-
-**Note:** In progress to add an abillity to parse unquoted type. :rocket:
-
 ## About
 
 To write a good documentation for terraform module, quite often we just need to print all our input variables as a fancy table.
 
-This tool offer you to avoid manual work and print variables as ready-to-go Markdown table.
+This tool offer you to avoid manual work and print variables as ready-to-go Markdown table. :rocket:
 
 Hope this will save your time. :blush:
 
