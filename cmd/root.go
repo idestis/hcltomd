@@ -185,14 +185,6 @@ func hclToInterface(content []byte) (interface{}, error) {
 	// Terraform. To silence this warning, remove the quotes around "string".
 	// type = "string"
 
-	// version hardcode style
-	// data := string(content)
-	// hclTypes := [3]string{"string", "number", "list()"}
-	// for _, t := range hclTypes {
-	// 	data = strings.Replace(data, t, `"`+t+`"`, -1)
-	// 	// fmt.Println(data)
-	// }
-
 	err := hcl.Unmarshal(content, &out)
 	if err != nil {
 		return nil, err
@@ -211,7 +203,8 @@ func readFileAndFormat(path string) ([]byte, error) {
 	var out []byte
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		if strings.Contains(scanner.Text(), "type") {
+		// FIXME: Spaces on both sides are not good to search
+		if strings.Contains(scanner.Text(), " type ") {
 			s := strings.Split(scanner.Text(), "=")
 			if !strings.Contains(s[1], "\"") {
 				s[1] = writeQuote(s[1])
