@@ -1,9 +1,10 @@
 package cmd
 
 import (
+	"bufio"
 	"fmt"
-	"io/ioutil"
 	"os"
+	"strings"
 
 	"github.com/fatih/color"
 	"github.com/hashicorp/hcl"
@@ -98,83 +99,145 @@ func runFuncOrVersion(cmd *cobra.Command, args []string) {
 			logrus.Errorf("%v file is not exists", File)
 			os.Exit(1)
 		}
-		data, err := ioutil.ReadFile(File)
+		fileData, err := readFileAndFormat(File)
 		if err != nil {
-			logrus.Errorf("File reading error %v", err)
+			logrus.Error(err)
 			return
 		}
-		jsonData, err := hclToJSON(data)
+		data, err := hclToInterface(fileData)
 		if err != nil {
 			logrus.Error(err)
 			os.Exit(1)
 		}
-		table := tablewriter.NewWriter(os.Stdout)
-		table.SetCenterSeparator("|")
-		table.SetColumnSeparator("|")
-		table.SetRowSeparator("-")
-		table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
-		table.SetAutoWrapText(false)
-		table.SetAlignment(tablewriter.ALIGN_LEFT)
-		table.SetHeader(
-			[]string{
-				"Name",
-				"Type",
-				"Default",
-				"Description",
-			})
-		var tableData []TableVariable
-		for _, variable := range jsonData.([]map[string]interface{}) {
-			for name, values := range variable {
-				// Placeholders
-				var def interface{}
-				varType := ""
-				varDesc := ""
-				for _, params := range values.([]map[string]interface{}) {
-					for key, param := range params {
-						if key == "default" {
-							def = param
-						}
-						if key == "description" {
-							varDesc = param.(string)
-						}
-						if key == "type" {
-							varType = param.(string)
-						}
-					}
-				}
-				tableData = append(tableData, TableVariable{
-					Default:     def,
-					Description: varDesc,
-					Name:        name,
-					Type:        varType,
-				})
-			}
-		}
-		for _, v := range tableData {
-			s := []string{
-				v.Name,
-				v.Type,
-				fmt.Sprintf("%v", v.Default),
-				v.Description,
-			}
-			table.Append(s)
-		}
-		table.Render()
+		tableRender(data)
 	}
 }
 
-func hclToJSON(content []byte) (interface{}, error) {
+func tableRender(data interface{}) {
+	table := tablewriter.NewWriter(os.Stdout)
+	// Table style configuration
+	table.SetCenterSeparator("|")
+	table.SetColumnSeparator("|")
+	table.SetRowSeparator("-")
+	table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
+	table.SetAutoWrapText(false)
+	table.SetAlignment(tablewriter.ALIGN_LEFT)
+	// Table Header definition
+	table.SetHeader(
+		[]string{
+			"Name",
+			"Type",
+			"Default",
+			"Description",
+		})
+	// tableData should be slice of slices,
+	// but first we need to organize our data from file.
+	var tableData []TableVariable
+	for _, variable := range data.([]map[string]interface{}) {
+		for name, values := range variable {
+			// Placeholders for data
+			var defaultValue interface{}
+			typeValue := ""
+			descriptionValue := ""
+			for _, params := range values.([]map[string]interface{}) {
+				for key, param := range params {
+					if key == "default" {
+						defaultValue = param
+					}
+					if key == "description" {
+						descriptionValue = param.(string)
+					}
+					if key == "type" {
+						typeValue = param.(string)
+					}
+				}
+			}
+			tableData = append(tableData, TableVariable{
+				Default:     defaultValue,
+				Description: descriptionValue,
+				Name:        name,
+				Type:        typeValue,
+			})
+		}
+	}
+
+	// Loop over structured data to create simple slice of slices.
+	for _, v := range tableData {
+		s := []string{
+			// Order here is required to match the table header
+			v.Name,
+			v.Type,
+			// Convert interface(whatever) to string
+			fmt.Sprintf("%v", v.Default),
+			v.Description,
+		}
+		table.Append(s)
+	}
+	table.Render()
+}
+
+func hclToInterface(content []byte) (interface{}, error) {
 	var out HashiCorp
+	// var data interface{}
 	// FIXME: Define why Unmarshal doesn't work with unqoted type from TF12
 	// Terraform 0.11 and earlier required type constraints to be given in quotes,
 	// but that form is now deprecated and will be removed in a future version of
 	// Terraform. To silence this warning, remove the quotes around "string".
 	// type = "string"
-	// err := hcl.Decode(&out, string(content))
+
+	// version hardcode style
+	// data := string(content)
+	// hclTypes := [3]string{"string", "number", "list()"}
+	// for _, t := range hclTypes {
+	// 	data = strings.Replace(data, t, `"`+t+`"`, -1)
+	// 	// fmt.Println(data)
+	// }
+
 	err := hcl.Unmarshal(content, &out)
 	if err != nil {
 		return nil, err
 	}
-	// TODO: allow to print outputs as well for documentation needs
+	// TODO: Work on this side to select/deleselect what you want to parse.
+	// Variables, Outputs, Data.
 	return out.Variable, nil
+}
+
+func readFileAndFormat(path string) ([]byte, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+	defer file.Close()
+	var out []byte
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		if strings.Contains(scanner.Text(), "type") {
+			s := strings.Split(scanner.Text(), "=")
+			if !strings.Contains(s[1], "\"") {
+				s[1] = writeQuote(s[1])
+				f := strings.Join(s, "= ")
+				out = append(out, f...)
+			} else {
+				out = append(out, scanner.Text()...)
+			}
+		} else {
+			out = append(out, scanner.Text()...)
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		logrus.Fatal(err)
+	}
+
+	return out, nil
+}
+
+func writeQuote(s string) string {
+	// TODO: Refactor this part, here is good example
+	// https://github.com/hashicorp/terraform/blob/1c7c53adbbf7c33713c1cf6696215132cf7eaf90/command/fmt.go#L430
+	s = strings.TrimSpace(s)
+	// if strings.HasPrefix(s, "string") || strings.HasPrefix(s, "bool") || strings.HasPrefix(s, "number") {
+	// 	return `"` + s + `"`
+	// }
+	return `"` + s + `"`
 }

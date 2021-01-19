@@ -7,13 +7,13 @@ variable "aws_region" {
 variable "vpc_id" {
   description = "The id of the specific VPC to retrieve."
   type        = string
-  default     = "1"
+  default     = "vpc-0a6ce9323d11855e7"
 }
 
 variable "instance_count" {
   description = "The count of desired instances of EC2."
   type        = number
-  default     = "2"
+  default     = 2
 }
 
 variable "zones" {
