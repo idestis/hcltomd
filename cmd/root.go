@@ -83,7 +83,6 @@ func init() {
 	rootCmd.Flags().StringVarP(&File, "file", "f", "", "terraform vars file path (required)")
 	// TODO: Add more print table options, such as MD.
 	// rootCmd.Flags().StringVarP(&Output, "output", "o", "table", "define the formatting of the output (e.g. table, list)")
-	rootCmd.MarkFlagRequired("file")
 }
 
 func initConfig() {
@@ -95,6 +94,10 @@ func runFuncOrVersion(cmd *cobra.Command, args []string) {
 	if showVersion {
 		fmt.Printf("%v version %s (%s) %s\n", Bold.Sprint("hcltomd"), version.Version, version.Commit, version.Date)
 	} else {
+		if File == "" {
+			logrus.Error("required flag --file is not set. Run --help for details.")
+			os.Exit(1)
+		}
 		if _, err := os.Stat(File); os.IsNotExist(err) {
 			logrus.Errorf("%v file is not exists", File)
 			os.Exit(1)
