@@ -1,6 +1,6 @@
 # Contributing to vaultmv
 
-The following is a set of guidelines for contributing to `vaultmv`. These are mostly guidelines, not rules. Use your best and feel free to propose changes using pull request or issues.
+The following is a set of guidelines for contributing to `hcltomd`. These are mostly guidelines, not rules. Use your best and feel free to propose changes using pull request or issues.
 
 ## Code of Conduct
 ---

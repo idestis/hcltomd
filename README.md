@@ -60,7 +60,7 @@ That's it, now you can copy output into your documentation.
 
 ## Contribute
 
-I will be happy to welcome a new contributors for this repo, feel free to read CONTRIBUTE.md
+I will be happy to welcome a new contributors for this repo, feel free to read [CONTRIBUTE.md](./CONTRIBUTE.md)
 
 ## Special Thanks
 
